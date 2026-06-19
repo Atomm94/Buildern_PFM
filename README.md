@@ -215,33 +215,6 @@ ports:
 
 ---
 
-## API Cannot Reach MySQL
-
-Error:
-
-```text
-Prisma P1001: Can't reach database server at mysql:3306
-```
-
-Check MySQL status:
-
-```bash
-docker compose ps
-```
-
-Verify MySQL is healthy:
-
-```bash
-docker compose logs mysql
-```
-
-Look for:
-
-```text
-ready for connections
-```
-
-Restart the stack:
 
 ```bash
 docker compose down
