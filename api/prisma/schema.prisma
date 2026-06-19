@@ -1,0 +1,153 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model User {
+  id           String @id @default(uuid())
+  email        String @unique
+  passwordHash String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projectsCreated     Project[]
+  memberships         ProjectMember[]
+  invitationsReceived Invitation[]    @relation("InvitationToUser")
+
+  expenses      Expense[]
+  incomes       Income[]
+  refreshTokens RefreshToken[]
+
+  @@index([email])
+}
+
+model Project {
+  id       String @id @default(uuid())
+  name     String
+  location String
+
+  creatorId String
+  creator   User   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members     ProjectMember[]
+  invitations Invitation[]
+  expenses    Expense[]
+  incomes     Income[]
+
+  @@index([creatorId])
+}
+
+model ProjectMember {
+  id String @id @default(uuid())
+
+  userId    String
+  projectId String
+
+  joinedAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, projectId])
+  @@index([projectId])
+  @@index([userId])
+}
+
+model Invitation {
+  id     String           @id @default(uuid())
+  email  String
+  status InvitationStatus @default(PENDING)
+
+  // sha256 hash of the opaque token delivered by email. The raw token is
+  // never persisted; only the bearer can act on the invitation.
+  tokenHash String @unique
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // optional: bind directly to a user when we already know the account
+  invitedUserId String?
+  invitedUser   User?   @relation("InvitationToUser", fields: [invitedUserId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime  @default(now())
+  expiresAt DateTime?
+
+  // only one PENDING invite per (project, email)
+  @@unique([projectId, email, status])
+  @@index([email])
+  @@index([projectId])
+  @@index([invitedUserId])
+}
+
+model Expense {
+  id String @id @default(uuid())
+
+  name   String
+  amount Decimal @db.Decimal(12, 2)
+
+  projectId String
+  creatorId String
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  creator User    @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([creatorId])
+}
+
+model Income {
+  id String @id @default(uuid())
+
+  name   String
+  amount Decimal @db.Decimal(12, 2)
+
+  projectId String
+  creatorId String
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  creator User    @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([creatorId])
+}
+
+model RefreshToken {
+  id String @id @default(uuid())
+
+  tokenHash String @unique
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // rotation chain: the token that replaced this one
+  replacedById String?       @unique
+  replacedBy   RefreshToken? @relation("RefreshChain", fields: [replacedById], references: [id])
+  replaces     RefreshToken? @relation("RefreshChain")
+
+  createdAt DateTime  @default(now())
+  expiresAt DateTime
+  revokedAt DateTime?
+
+  @@index([userId])
+  @@index([expiresAt])
+}
