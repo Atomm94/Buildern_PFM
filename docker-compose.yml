@@ -10,7 +10,7 @@ services:
         volumes:
             - mysql_data:/var/lib/mysql
         ports:
-            - "3306:3306"
+            - "3307:3306"
         healthcheck:
             test:
                 [
@@ -37,8 +37,8 @@ services:
             NODE_ENV: production
             PORT: 4000
             DATABASE_URL: mysql://${MYSQL_USER:-pfm}:${MYSQL_PASSWORD:-pfm}@mysql:3306/${MYSQL_DATABASE:-pfm_db}
-            JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?set JWT_ACCESS_SECRET}
-            JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?set JWT_REFRESH_SECRET}
+            JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+            JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
             ACCESS_TOKEN_EXPIRES: ${ACCESS_TOKEN_EXPIRES:-15m}
             REFRESH_TOKEN_EXPIRES: ${REFRESH_TOKEN_EXPIRES:-7d}
             WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost:5173}

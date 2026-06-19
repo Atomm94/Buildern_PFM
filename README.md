@@ -1,138 +1,389 @@
 # Buildern PFM
 
-Project and finance management. GraphQL API + React web client.
+Project and Finance Management application built with a GraphQL API and React web client.
 
-## Tech stack
+## Tech Stack
 
-- **API**: Node 22, Express, Apollo Server, Prisma, MySQL 8
-- **Web**: React 18, Vite, Apollo Client, MUI v7, React Hook Form + Yup, Joi
-- **Auth**: JWT access + refresh, hashed in DB
-- **Mail**: nodemailer (SMTP, or console-log in dev)
-- **Tests**: Jest + Supertest
+### Backend
 
-## Running the project
+* Node.js 22
+* Express
+* Apollo Server
+* Prisma
+* MySQL 8
 
-There are two ways to run it. **Option 1** runs everything in Docker. **Option 2** runs the API and web app locally with
-`npm`, while still pulling the infrastructure dependency (MySQL) via Docker.
+### Frontend
+
+* React 18
+* Vite
+* Apollo Client
+* MUI v7
+* React Hook Form + Yup
+* Joi
+
+### Authentication
+
+* JWT Access Tokens
+* JWT Refresh Tokens
+* Passwords and refresh tokens hashed in the database
+
+### Email
+
+* Nodemailer (SMTP)
+* Console logging fallback for development
+
+### Testing
+
+* Jest
+* Supertest
 
 ---
 
-### Option 1 — Run everything via Docker
+# Quick Start (Docker)
 
-**Step 1 — Pull the base images:**
+## Prerequisites
+
+Install:
+
+* Docker Engine 24+
+* Docker Compose v2+
+
+Verify installation:
 
 ```bash
-docker pull mysql:8.0
-docker pull node:22-alpine
+docker --version
+docker compose version
 ```
 
-**Step 2 — Configure and start:**
+---
+
+## 1. Clone the Repository
+
+```bash
+git clone <repository-url>
+cd buildern-pfm
+```
+
+---
+
+## 2. Configure Environment Variables
+
+Create a root `.env` file:
 
 ```bash
 cp .env.example .env
-# Set JWT_ACCESS_SECRET and JWT_REFRESH_SECRET to random ≥32-byte values
+```
+
+Update at minimum:
+
+```env
+JWT_ACCESS_SECRET=replace-with-random-32-byte-secret
+JWT_REFRESH_SECRET=replace-with-random-32-byte-secret
+```
+
+Generate secure secrets:
+
+```bash
+openssl rand -hex 32
+```
+
+---
+
+## 3. Start the Application
+
+Build and start all services:
+
+```bash
 docker compose up --build
 ```
 
-- Web: http://localhost:5173
-- API: http://localhost:4000/graphql
+Run in detached mode:
 
-DB migrations apply automatically on API startup (the image runs
-`npx prisma migrate deploy` before launching the server). Stop with
-`docker compose down` (MySQL data persists in the `mysql_data` volume); wipe
-with `docker compose down -v`.
+```bash
+docker compose up -d --build
+```
+
+Docker starts:
+
+| Service | Port |
+| ------- | ---- |
+| MySQL   | 3306 |
+| API     | 4000 |
+| Web     | 5173 |
 
 ---
 
-### Option 2 — Run locally (dependencies via Docker)
-
-To run the app locally, only the infrastructure
-(MySQL) comes from Docker; the API and web app run with `npm`.
-
-**Step 1 — Start the dependency in Docker:**
+## 4. Verify Containers
 
 ```bash
-# MySQL
-docker run -d --name pfm_mysql \
-  -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=pfm_db \
-  -e MYSQL_USER=pfm -e MYSQL_PASSWORD=pfm \
-  -p 3306:3306 mysql:8.0
+docker compose ps
 ```
 
-**Step 2 — Build, migrate and run the API locally:**
+Expected output:
+
+```text
+NAME       STATUS
+mysql-1    Up (healthy)
+api-1      Up
+web-1      Up
+```
+
+---
+
+## 5. Open the Application
+
+Frontend:
+
+```text
+http://localhost:5173
+```
+
+GraphQL API:
+
+```text
+http://localhost:4000/graphql
+```
+
+---
+
+# Database
+
+## Migrations
+
+Database migrations are automatically applied during API startup:
+
+```bash
+npx prisma migrate deploy
+```
+
+No manual migration step is required when using Docker.
+
+---
+
+## View Database Logs
+
+```bash
+docker compose logs mysql
+```
+
+---
+
+## Reset Database
+
+Remove containers only:
+
+```bash
+docker compose down
+```
+
+Remove containers and database data:
+
+```bash
+docker compose down -v
+```
+
+---
+
+# Common Issues
+
+## Port 3306 Already in Use
+
+Error:
+
+```text
+failed to bind host port 0.0.0.0:3306: address already in use
+```
+
+Check what is using port 3306:
+
+```bash
+sudo lsof -i :3306
+```
+
+Stop local MySQL:
+
+```bash
+sudo systemctl stop mysql
+```
+
+Or change the MySQL port mapping in `docker-compose.yml`:
+
+```yaml
+ports:
+  - "3307:3306"
+```
+
+---
+
+## API Cannot Reach MySQL
+
+Error:
+
+```text
+Prisma P1001: Can't reach database server at mysql:3306
+```
+
+Check MySQL status:
+
+```bash
+docker compose ps
+```
+
+Verify MySQL is healthy:
+
+```bash
+docker compose logs mysql
+```
+
+Look for:
+
+```text
+ready for connections
+```
+
+Restart the stack:
+
+```bash
+docker compose down
+docker compose up --build
+```
+
+---
+
+# Running Locally
+
+## Start MySQL Only
+
+```bash
+docker run -d \
+  --name pfm_mysql \
+  -e MYSQL_ROOT_PASSWORD=root \
+  -e MYSQL_DATABASE=pfm_db \
+  -e MYSQL_USER=pfm \
+  -e MYSQL_PASSWORD=pfm \
+  -p 3306:3306 \
+  mysql:8.0
+```
+
+---
+
+## Start API
 
 ```bash
 cd api
+
 cp .env.example .env
-# DATABASE_URL already points at localhost:3306.
-# emails to the console, or set real SMTP credentials to send mail.
+
 npm install
-npx prisma migrate deploy   # apply DB migrations
+
+npx prisma migrate deploy
+
 npm run dev
 ```
 
-Runs at http://localhost:4000/graphql.
+API:
 
-**Step 3 — Run the web app locally:**
+```text
+http://localhost:4000/graphql
+```
+
+---
+
+## Start Web Client
 
 ```bash
 cd web
+
 cp .env.example .env
+
 npm install
+
 npm run dev
 ```
 
-Runs at http://localhost:5173.
+Frontend:
 
-## Invitation emails
-
-When you invite a user, the accept link is sent by email. If it doesn't
-arrive in the inbox, **check the spam folder**, or grab the link straight from
-the API logs — every invite is printed there:
-
-```
-[invite] someone@example.com -> http://localhost:5173/invitations/accept?token=...
+```text
+http://localhost:5173
 ```
 
-With `SMTP_HOST` blank (the default), no real email is sent and the link only
-appears in the logs.
+---
 
-## Tests
+# Invitation Emails
+
+When a user is invited, an acceptance link is generated.
+
+If SMTP is configured, the invitation is emailed.
+
+If SMTP is not configured, the link is logged to the API console:
+
+```text
+[invite] user@example.com -> http://localhost:5173/invitations/accept?token=...
+```
+
+Check spam folders if emails are not received.
+
+---
+
+# Running Tests
 
 ```bash
 cd api
 npm test
 ```
 
-29 tests covering auth, projects, invitations (email + token flow),
-finance access rules, and the budget report.
+Tests cover:
 
-## Environment variables
+* Authentication
+* Projects
+* Invitations
+* Email flows
+* Finance permissions
+* Budget reports
 
-API (`api/.env`):
+---
 
-| Variable | Description |
-|---|---|
-| `DATABASE_URL` | MySQL connection string |
-| `JWT_ACCESS_SECRET` | Random ≥32-byte string |
-| `JWT_REFRESH_SECRET` | Random ≥32-byte string |
-| `ACCESS_TOKEN_EXPIRES` | e.g. `15m` |
-| `REFRESH_TOKEN_EXPIRES` | e.g. `7d` |
-| `WEB_ORIGIN` | CORS allowlist for the API |
-| `WEB_BASE_URL` | Base URL used in invitation emails |
-| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` | SMTP server (leave `SMTP_HOST` blank to log emails to the console) |
-| `MAIL_FROM` | From-address used by the mailer |
+# Environment Variables
 
-Web (`web/.env`):
+## API
 
-| Variable | Description |
-|---|---|
-| `VITE_API_URL` | URL of the GraphQL endpoint |
+| Variable              | Description                 |
+| --------------------- | --------------------------- |
+| DATABASE_URL          | MySQL connection string     |
+| JWT_ACCESS_SECRET     | JWT access secret           |
+| JWT_REFRESH_SECRET    | JWT refresh secret          |
+| ACCESS_TOKEN_EXPIRES  | Access token lifetime       |
+| REFRESH_TOKEN_EXPIRES | Refresh token lifetime      |
+| WEB_ORIGIN            | CORS origin                 |
+| WEB_BASE_URL          | Frontend URL used in emails |
+| SMTP_HOST             | SMTP host                   |
+| SMTP_PORT             | SMTP port                   |
+| SMTP_USER             | SMTP username               |
+| SMTP_PASS             | SMTP password               |
+| MAIL_FROM             | Sender email address        |
 
-## Layout
+## Web
 
-```
-api/    GraphQL API (Express + Apollo + Prisma)
-web/    React app (Vite + Apollo Client + MUI)
-docker-compose.yml
+| Variable     | Description          |
+| ------------ | -------------------- |
+| VITE_API_URL | GraphQL endpoint URL |
+
+---
+
+# Project Structure
+
+```text
+buildern-pfm/
+├── api/
+│   ├── prisma/
+│   ├── src/
+│   └── Dockerfile
+│
+├── web/
+│   ├── src/
+│   └── Dockerfile
+│
+├── docker-compose.yml
+├── .env.example
+└── README.md
 ```
