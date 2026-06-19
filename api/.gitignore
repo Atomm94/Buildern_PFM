@@ -4,6 +4,4 @@ dist
 
 .env
 
-coverage
-
 .prisma
