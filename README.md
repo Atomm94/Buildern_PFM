@@ -184,45 +184,6 @@ docker compose down -v
 
 ---
 
-# Common Issues
-
-## Port 3306 Already in Use
-
-Error:
-
-```text
-failed to bind host port 0.0.0.0:3306: address already in use
-```
-
-Check what is using port 3306:
-
-```bash
-sudo lsof -i :3306
-```
-
-Stop local MySQL:
-
-```bash
-sudo systemctl stop mysql
-```
-
-Or change the MySQL port mapping in `docker-compose.yml`:
-
-```yaml
-ports:
-  - "3307:3306"
-```
-
----
-
-
-```bash
-docker compose down
-docker compose up --build
-```
-
----
-
 # Running Locally
 
 ## Start MySQL Only
