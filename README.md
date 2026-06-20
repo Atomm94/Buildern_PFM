@@ -25,6 +25,7 @@ Project and Finance Management application built with a GraphQL API and React we
 
 * JWT Access Tokens
 * JWT Refresh Tokens
+* Refresh token rotation and revocation support
 * Passwords and refresh tokens hashed in the database
 
 ### Email
@@ -107,7 +108,7 @@ Docker starts:
 
 | Service | Port |
 | ------- | ---- |
-| MySQL   | 3306 |
+| MySQL   | 3307 |
 | API     | 4000 |
 | Web     | 5173 |
 
@@ -184,45 +185,6 @@ docker compose down -v
 
 ---
 
-# Common Issues
-
-## Port 3306 Already in Use
-
-Error:
-
-```text
-failed to bind host port 0.0.0.0:3306: address already in use
-```
-
-Check what is using port 3306:
-
-```bash
-sudo lsof -i :3306
-```
-
-Stop local MySQL:
-
-```bash
-sudo systemctl stop mysql
-```
-
-Or change the MySQL port mapping in `docker-compose.yml`:
-
-```yaml
-ports:
-  - "3307:3306"
-```
-
----
-
-
-```bash
-docker compose down
-docker compose up --build
-```
-
----
-
 # Running Locally
 
 ## Start MySQL Only
@@ -234,7 +196,7 @@ docker run -d \
   -e MYSQL_DATABASE=pfm_db \
   -e MYSQL_USER=pfm \
   -e MYSQL_PASSWORD=pfm \
-  -p 3306:3306 \
+  -p 3307:3306 \
   mysql:8.0
 ```
 
@@ -310,7 +272,6 @@ Tests cover:
 * Authentication
 * Projects
 * Invitations
-* Email flows
 * Finance permissions
 * Budget reports
 
@@ -342,6 +303,41 @@ Tests cover:
 | VITE_API_URL | GraphQL endpoint URL |
 
 ---
+
+# Design Decisions
+
+## Entity Relationships
+
+- A User can own multiple Projects.
+- A Project can contain multiple Members.
+- A Project can contain multiple Expenses and Incomes.
+- A User can create Expenses and Incomes.
+- Invitations are used to grant project membership through an acceptance workflow.
+
+## Constraints
+
+- One membership per user/project pair.
+- No duplicate pending invitations for the same project and email.
+- Only project owners can send invitations.
+- Only expense creators or project owners can update or delete expenses.
+
+## Indexing Strategy
+
+Indexes were added for:
+
+- Project.creatorId
+- Expense.projectId
+- Expense(projectId, name)
+- Income.projectId
+- Income(projectId, name)
+- Invitation.email
+- Invitation.projectId
+
+These indexes optimize permission checks, project lookups, invitation workflows, and budget report generation.
+
+## Performance Considerations
+
+The budget report is generated dynamically using aggregated database queries rather than loading all records into memory. This avoids N+1 query issues and scales efficiently with larger datasets.
 
 # Project Structure
 

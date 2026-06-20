@@ -45,9 +45,9 @@ services:
             WEB_BASE_URL: ${WEB_BASE_URL:-http://localhost:5173}
             SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
             SMTP_PORT: ${SMTP_PORT:-587}
-            SMTP_USER: ${SMTP_USER:-acct61692@gmail.com}
-            SMTP_PASS: ${SMTP_PASS:-nsdj mvtw baql wllr}
-            MAIL_FROM: ${MAIL_FROM:-acct61692@gmail.com}
+            SMTP_USER: ${SMTP_USER:-}
+            SMTP_PASS: ${SMTP_PASS:-}
+            MAIL_FROM: ${MAIL_FROM:-}
         ports:
             - "4000:4000"
         restart: unless-stopped
