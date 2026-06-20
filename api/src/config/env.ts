@@ -31,7 +31,7 @@ export const env = {
     SMTP_PORT: Number(process.env.SMTP_PORT ?? 587),
     SMTP_USER: process.env.SMTP_USER ?? "",
     SMTP_PASS: process.env.SMTP_PASS ?? "",
-    MAIL_FROM: process.env.MAIL_FROM ?? "no-reply@buildern.local",
+    MAIL_FROM: process.env.MAIL_FROM ?? "acct61692@gmail.com",
 } as const;
 
 export const isProd = env.NODE_ENV === "production";

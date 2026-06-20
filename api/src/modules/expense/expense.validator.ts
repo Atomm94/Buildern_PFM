@@ -14,7 +14,7 @@ const parser = <T>(schema: Joi.ObjectSchema<T>) => ({
     },
 });
 
-// Decimal scalar gives us a Prisma.Decimal; coerce numbers/strings too.
+// Decimal scalar gives us a Prisma.Decimal.
 const positiveAmount = Joi.any().custom((v) => {
     let d: Prisma.Decimal;
     try {

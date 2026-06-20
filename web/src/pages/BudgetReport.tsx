@@ -35,8 +35,7 @@ export default function BudgetReport() {
         if (list?.length && !projectId) setProjectId(list[0].id);
     }, [projects.data, projectId]);
 
-    // cache-and-network so navigating here after adding/removing expenses or
-    // incomes always re-fetches the totals instead of showing a stale cache.
+    // removing expenses or incomes always re-fetches the totals instead of showing a stale cache.
     const report = useQuery<{ budgetReport: ReportItem[] }>(BUDGET_REPORT, {
         variables: { projectId },
         skip: !projectId,

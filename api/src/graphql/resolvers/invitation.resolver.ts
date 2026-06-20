@@ -21,7 +21,6 @@ export default {
             const user = requireAuth(ctx);
             return InvitationService.projectInvitations(user.id, args.projectId);
         },
-        // Public on purpose: the token is the credential. Lets the accept page
         // show who the invite is for before the visitor signs in.
         invitationPreview: (_: unknown, args: { token: string }) =>
             InvitationService.previewByToken(args.token),

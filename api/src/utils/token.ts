@@ -11,9 +11,6 @@ const refreshOpts: SignOptions = {
     expiresIn: env.REFRESH_TOKEN_EXPIRES as SignOptions["expiresIn"],
 };
 
-// `jti` keeps each issued token unique even when two are issued in the same
-// second to the same user (e.g. register → immediate refresh).
-// sign short-lived access token
 export const signAccessToken = (userId: string) =>
     jwt.sign(
         { sub: userId, jti: crypto.randomUUID() },

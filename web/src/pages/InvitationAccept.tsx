@@ -63,8 +63,7 @@ export default function InvitationAccept() {
         }
     };
 
-    // Carry the visitor back to this exact link after they authenticate, and
-    // prefill the invited email so they sign in / register as the right account.
+    // Carry the visitor back to this exact link after they authenticate.
     const goToAuth = (path: "/login" | "/register", email: string) =>
         navigate(path, {
             state: {

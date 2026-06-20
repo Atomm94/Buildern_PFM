@@ -72,21 +72,17 @@ model Invitation {
   email  String
   status InvitationStatus @default(PENDING)
 
-  // sha256 hash of the opaque token delivered by email. The raw token is
-  // never persisted; only the bearer can act on the invitation.
   tokenHash String @unique
 
   projectId String
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  // optional: bind directly to a user when we already know the account
   invitedUserId String?
   invitedUser   User?   @relation("InvitationToUser", fields: [invitedUserId], references: [id], onDelete: SetNull)
 
   createdAt DateTime  @default(now())
   expiresAt DateTime?
 
-  // only one PENDING invite per (project, email)
   @@unique([projectId, email, status])
   @@index([email])
   @@index([projectId])
@@ -139,7 +135,6 @@ model RefreshToken {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // rotation chain: the token that replaced this one
   replacedById String?       @unique
   replacedBy   RefreshToken? @relation("RefreshChain", fields: [replacedById], references: [id])
   replaces     RefreshToken? @relation("RefreshChain")

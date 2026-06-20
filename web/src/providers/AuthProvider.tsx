@@ -13,7 +13,6 @@ type Props = { children: React.ReactNode };
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000/graphql";
 
-// Direct fetch (bypasses Apollo) used at boot so we don't race the errorLink.
 const exchangeRefreshToken = async (refreshToken: string) => {
     try {
         const res = await fetch(API_URL, {

@@ -2,7 +2,6 @@ import crypto from "node:crypto";
 import type { User } from "@prisma/client";
 
 import { prisma } from "../../config/prisma";
-import { env } from "../../config/env";
 import { hashPassword, comparePassword } from "../../utils/password";
 import {
     signAccessToken,
@@ -57,7 +56,6 @@ export class AuthService {
         password: string,
     ): Promise<AuthPayload> {
         const existing = await prisma.user.findUnique({ where: { email } });
-        // Generic message: don't expose whether the email is taken.
         if (existing) throw conflict("Registration failed");
 
         const user = await prisma.user.create({
@@ -84,8 +82,7 @@ export class AuthService {
         return { user, ...tokens };
     }
 
-    // Rotates the refresh token. Detects reuse of an already-revoked token
-    // and treats it as theft: all of that user's refresh tokens are revoked.
+    // Rotates the refresh token.
     static async refresh(refreshToken: string): Promise<AuthPayload> {
         let payload: { sub: string };
         try {
@@ -103,7 +100,7 @@ export class AuthService {
             throw unauthenticated("Invalid refresh token");
         }
 
-        // Token theft signal: presented token was already revoked. Burn all sessions.
+        // Presented token was already revoked. Burn all sessions.
         if (stored.revokedAt) {
             await prisma.refreshToken.updateMany({
                 where: { userId: stored.userId, revokedAt: null },

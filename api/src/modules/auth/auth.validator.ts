@@ -1,7 +1,7 @@
 import Joi from "joi";
 import { badInput } from "../../errors/AppError";
 
-// Wraps a Joi schema with a typed parse() that throws BAD_USER_INPUT on failure.
+// Wraps a Joi schema with a typed parse()
 const parser = <T>(schema: Joi.ObjectSchema<T>) => ({
     parse: (value: unknown): T => {
         const { value: clean, error } = schema.validate(value, {
@@ -20,7 +20,6 @@ const password = Joi.string()
     .pattern(/\d/, "digit")
     .required();
 
-// Stored and compared lowercase so accounts are case-insensitive.
 const email = Joi.string().email().max(254).lowercase().trim().required();
 
 export const registerSchema = parser(

@@ -16,8 +16,7 @@ const buildAcceptUrl = (token: string) =>
     `${env.WEB_BASE_URL}/invitations/accept?token=${encodeURIComponent(token)}`;
 
 export class InvitationService {
-    // Owner-only. One PENDING invite per (project, email); the DB unique
-    // constraint settles races between concurrent calls.
+    // Owner-only. One PENDING invite per (project, email).
     static async inviteUser(callerId: string, projectId: string, email: string) {
         const isOwner = await ProjectPermission.isProjectOwner(callerId, projectId);
         if (!isOwner) throw forbidden();
@@ -79,10 +78,7 @@ If this wasn't you, ignore this email.`,
         return invitation;
     }
 
-    // The email link is a capability: the signed-in user who opens it accepts
-    // and the project is added to *their* account (the web app makes anonymous
-    // visitors register/sign in first). Flipping the status happens in one
-    // guarded update so concurrent calls grant access once.
+    // Accept invitation
     static async acceptInvitation(userId: string, token: string) {
         const invitation = await this.findByToken(token);
 
@@ -124,7 +120,6 @@ If this wasn't you, ignore this email.`,
     }
 
     // Owner-only: the invitations a project owner has sent for their project.
-    // Plain users never list invitations — they act through the email link.
     static async projectInvitations(callerId: string, projectId: string) {
         const isOwner = await ProjectPermission.isProjectOwner(callerId, projectId);
         if (!isOwner) throw forbidden();
@@ -136,8 +131,7 @@ If this wasn't you, ignore this email.`,
     }
 
     // Public, token-gated preview so the accept page can tell the visitor which
-    // account the invite is for *before* they sign in. Returns null when the
-    // token is unknown rather than leaking which tokens exist.
+    // account the invite is for *before* they sign in.
     static async previewByToken(token: string) {
         const tokenHash = hashToken((token ?? "").trim());
         const invitation = await prisma.invitation.findFirst({

@@ -60,8 +60,6 @@ export default function ProjectDetail() {
     const navigate = useNavigate();
     const { user } = useAuth();
 
-    // Poll so the members list reflects an invitee accepting from another
-    // session without the owner needing to reload the page.
     const project = useQuery<{ project: Project | null }>(GET_PROJECT, {
         variables: { projectId },
         skip: !projectId,
@@ -101,8 +99,7 @@ export default function ProjectDetail() {
     });
     const [inviteUser] = useMutation(INVITE_USER);
 
-    // Owner-only: list of invitations sent for this project. Skipped entirely
-    // for non-owners so plain members never query the invitations table.
+    // Owner-only.
     const invitations = useQuery<{ projectInvitations: Invitation[] }>(
         PROJECT_INVITATIONS,
         {

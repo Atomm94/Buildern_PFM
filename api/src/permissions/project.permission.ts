@@ -25,8 +25,7 @@ export const ProjectPermission = {
         return Boolean(hit);
     },
 
-    // Any member of the project (owner included) can manage its expenses,
-    // not only the entry's creator — members share full CRUD on the project.
+    // Any member of the project (owner included) can manage its expenses.
     async canManageExpense(userId: string, expenseId: string) {
         const row = await prisma.expense.findUnique({
             where: { id: expenseId },

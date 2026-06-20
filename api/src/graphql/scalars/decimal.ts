@@ -1,7 +1,6 @@
 import { GraphQLScalarType, Kind } from "graphql";
 import { Prisma } from "@prisma/client";
 
-// Money on the wire as a string so JSON never rounds it. Prisma.Decimal
 // accepts strings/numbers and gives back a Decimal we can pass to Prisma.
 
 export const DecimalScalar = new GraphQLScalarType({

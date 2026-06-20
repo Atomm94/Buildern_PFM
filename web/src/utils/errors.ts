@@ -1,9 +1,3 @@
-// Translates Apollo / GraphQL errors into messages the UI can show directly.
-// We trust the server's text for codes whose message is already user-facing
-// (BAD_USER_INPUT, CONFLICT, NOT_FOUND, and UNAUTHENTICATED — e.g. "Invalid
-// credentials" on login), and substitute friendlier text only for FORBIDDEN,
-// which is usually context-free.
-
 const FRIENDLY: Record<string, string> = {
     FORBIDDEN: "You don't have permission to do this.",
 };
